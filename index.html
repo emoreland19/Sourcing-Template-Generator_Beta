@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outreach Pilot — Beta</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#16120E;--ink-mid:#4A4039;--ink-soft:#7A706A;
+  --surface:#FDFAF7;--surface-2:#F5EEE6;--surface-3:#EAE0D5;
+  --accent:#1A4A6E;--accent-light:#E8F0F7;--accent-mid:#2E6DA4;
+  --border:rgba(80,55,30,0.11);--border-mid:rgba(80,55,30,0.2);
+  --success:#2D6A4F;--success-bg:#D8F3DC;
+  --warn-bg:#FFF8ED;--warn:#7A5800;--warn-border:rgba(122,88,0,0.18);
+  --danger:#7A1F1F;--danger-bg:#FDE8E8;
+  --radius:10px;--radius-sm:7px;
+}
+body{font-family:'Instrument Sans',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;font-size:14px;}
+
+/* ── HEADER ── */
+header{background:var(--ink);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;}
+.logo{font-family:'DM Serif Display',serif;font-size:16px;color:#fff;display:flex;align-items:center;gap:9px;}
+.beta-pill{font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.15);letter-spacing:.1em;}
+.header-tabs{display:flex;gap:0;}
+.htab{font-size:12px;font-weight:500;color:rgba(255,255,255,0.45);padding:0 16px;height:52px;display:flex;align-items:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.htab:hover{color:rgba(255,255,255,0.75);}
+.htab.active{color:#fff;border-bottom-color:#fff;}
+.header-right{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3);}
+
+/* ── SHARED ── */
+.btn{font-family:'Instrument Sans',sans-serif;font-size:12px;font-weight:500;padding:6px 13px;border-radius:var(--radius-sm);border:1px solid var(--border-mid);background:#fff;color:var(--ink);cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+.btn:hover{background:var(--surface-3);}
+.btn:active{transform:scale(.98);}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-accent:hover{background:#133A57;border-color:#133A57;}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border-color:rgba(122,31,31,.18);}
+.btn-danger:hover{background:#f5cece;}
+.btn-lg{padding:9px 18px;font-size:13px;}
+.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;}
+.card{background:#fff;border:1px solid var(--border-mid);border-radius:var(--radius);padding:1.1rem 1.25rem;}
+input[type=text],input[type=email],textarea,select{font-family:'Instrument Sans',sans-serif;font-size:13px;color:var(--ink);background:#fff;border:1px solid var(--border-mid);border-radius:var(--radius-sm);padding:7px 10px;outline:none;transition:border-color .15s;width:100%;}
+input[type=text]:focus,input[type=email]:focus,textarea:focus,select:focus{border-color:var(--accent);}
+textarea{resize:vertical;}
+.tag{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500;}
+.tag-blue{background:var(--accent-light);color:var(--accent-mid);}
+.tag-green{background:var(--success-bg);color:var(--success);}
+.tag-gray{background:var(--surface-3);color:var(--ink-soft);}
+.spinner{display:inline-block;width:11px;height:11px;border:2px solid rgba(30,74,110,.15);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── VIEWS ── */
+.view{display:none;height:calc(100vh - 52px);overflow:hidden;}
+.view.active{display:flex;}
+
+/* ════════════════════════════════
+   VIEW 1 — SETUP
+════════════════════════════════ */
+#view-setup{flex-direction:column;overflow-y:auto;padding:2rem;}
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:900px;margin:0 auto;width:100%;}
+.setup-full{grid-column:1/-1;}
+.setup-section{display:flex;flex-direction:column;gap:10px;}
+.drop-zone{border:2px dashed var(--border-mid);border-radius:var(--radius);padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface-2);}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-light);}
+.drop-zone p{font-size:13px;color:var(--ink-soft);margin-top:6px;}
+.drop-zone strong{color:var(--ink);}
+.drop-icon{font-size:28px;opacity:.4;}
+
+/* col map */
+.col-map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;}
+.col-map-item label{font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;}
+
+/* sender fields */
+.sender-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+/* template editor */
+.template-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+.template-row{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .1s;}
+.template-row:hover{background:var(--surface-3);}
+.template-row.selected{background:var(--accent-light);border-color:var(--accent-mid);}
+.tmpl-name{font-weight:600;font-size:13px;flex:1;}
+.tmpl-preview{font-size:11px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+.template-editor-wrap{display:none;}
+.template-editor-wrap.open{display:flex;flex-direction:column;gap:8px;}
+.var-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.var-chip{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:99px;background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn);cursor:pointer;transition:all .15s;}
+.var-chip:hover{background:var(--accent-light);color:var(--accent-mid);border-color:var(--accent-mid);}
+
+.setup-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;grid-column:1/-1;}
+.notice{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;color:var(--warn);line-height:1.5;}
+
+/* ════════════════════════════════
+   VIEW 2 — OUTREACH
+════════════════════════════════ */
+#view-outreach{flex-direction:row;}
+aside{width:300px;min-width:300px;background:var(--surface-2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-top{padding:.9rem 1.1rem;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:7px;}
+.search-wrap{position:relative;}
+.search-wrap input{padding:6px 10px 6px 28px;font-size:12px;}
+.search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--ink-soft);font-size:12px;pointer-events:none;}
+.stats-row{display:flex;gap:.9rem;padding:6px 1.1rem;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);}
+.stat{display:flex;align-items:baseline;gap:4px;}
+.stat-n{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--ink);}
+.stat-l{font-size:11px;color:var(--ink-soft);}
+.contact-list{overflow-y:auto;flex:1;}
+.contact-list::-webkit-scrollbar{width:3px;}
+.contact-list::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:2px;}
+.contact-item{padding:9px 1.1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:9px;}
+.contact-item:hover{background:var(--surface-3);}
+.contact-item.active{background:var(--accent-light);border-left:3px solid var(--accent);padding-left:calc(1.1rem - 3px);}
+.contact-item.done{opacity:.42;}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border-mid);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:var(--ink-mid);flex-shrink:0;}
+.contact-item.active .avatar{background:var(--accent);color:#fff;border-color:var(--accent);}
+.ci-info{flex:1;min-width:0;}
+.ci-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci-co{font-size:11px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbadge{font-family:'DM Mono',monospace;font-size:9px;padding:2px 6px;border-radius:99px;flex-shrink:0;}
+.cbadge.ready{background:var(--surface-3);color:var(--ink-soft);}
+.cbadge.done{background:var(--success-bg);color:var(--success);}
+
+main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.main-hdr{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;gap:1rem;}
+.mh-left{flex:1;min-width:0;}
+.mh-name{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:2px;}
+.mh-meta{font-size:11px;color:var(--ink-soft);display:flex;gap:9px;flex-wrap:wrap;}
+.mh-meta a{color:var(--accent-mid);text-decoration:none;}
+.mh-meta a:hover{text-decoration:underline;}
+.nav-btns{display:flex;gap:5px;flex-shrink:0;}
+
+.email-editor{flex:1;overflow-y:auto;padding:1.1rem 1.5rem;display:flex;flex-direction:column;gap:9px;}
+.how-to{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-sm);padding:9px 13px;}
+.how-to-title{font-size:11px;font-weight:600;color:var(--warn);margin-bottom:3px;}
+.how-to ol{font-size:11px;color:var(--warn);padding-left:1rem;line-height:1.7;}
+
+/* template selector strip */
+.tmpl-strip{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border);}
+.tmpl-strip-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em;flex-shrink:0;}
+.tmpl-btn{font-family:'Instrument Sans',sans-serif;font-size:11px;font-weight:500;padding:4px 11px;border-radius:99px;border:1px solid var(--border-mid);background:#fff;color:var(--ink-mid);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.tmpl-btn:hover{background:var(--surface-3);}
+.tmpl-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.field-row{display:flex;align-items:center;gap:9px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.field-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-soft);width:50px;flex-shrink:0;text-transform:uppercase;letter-spacing:.06em;}
+.field-value{font-size:13px;color:var(--ink);flex:1;}
+.field-value input{background:transparent;border:none;font-size:13px;color:var(--ink);padding:1px 0;}
+.field-value input:focus{border-bottom:1px solid var(--accent);}
+.body-wrap{flex:1;display:flex;flex-direction:column;gap:5px;}
+.body-toolbar{display:flex;gap:7px;align-items:center;}
+.toolbar-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;}
+#email-body{flex:1;min-height:280px;font-size:13px;line-height:1.8;color:var(--ink);border-radius:var(--radius-sm);}
+
+.action-bar{padding:.8rem 1.5rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:1rem;flex-wrap:wrap;background:var(--surface);}
+.action-hint{font-size:11px;color:var(--ink-soft);line-height:1.5;}
+.action-hint strong{color:var(--ink);}
+.action-btns{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:var(--ink-soft);padding:2rem;text-align:center;}
+.empty-state h2{font-family:'DM Serif Display',serif;font-size:19px;color:var(--ink);opacity:.4;}
+.empty-state p{font-size:12px;max-width:240px;line-height:1.6;}
+
+#toast{position:fixed;bottom:18px;right:18px;background:var(--ink);color:#fff;padding:9px 16px;border-radius:var(--radius-sm);font-size:12px;opacity:0;transform:translateY(5px);transition:all .22s;pointer-events:none;z-index:9999;}
+#toast.show{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Outreach Pilot <span class="beta-pill">Beta v0.2</span></div>
+  <div class="header-tabs">
+    <div class="htab active" onclick="showView('setup')" id="tab-setup">⚙ Setup</div>
+    <div class="htab" onclick="showView('outreach')" id="tab-outreach">✉ Outreach</div>
+  </div>
+  <div class="header-right" id="hdr-count"></div>
+</header>
+
+<!-- ════════════════ VIEW: SETUP ════════════════ -->
+<div class="view active" id="view-setup">
+<div class="setup-grid">
+
+  <!-- SENDER INFO -->
+  <div class="setup-section">
+    <div class="section-label">Sender info</div>
+    <div class="card">
+      <div class="sender-grid">
+        <div>
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px;">Your name</label>
+          <input type="text" id="sender-name" placeholder="Ned Moreland" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px;">Your email</label>
+          <input type="email" id="sender-email" placeholder="emorelan@chicagobooth.edu" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px;">Firm / sign-off line</label>
+          <input type="text" id="sender-firm" placeholder="Associate, NextGen Fire & Safety" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT UPLOAD -->
+  <div class="setup-section">
+    <div class="section-label">Contact list</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <div class="drop-icon">📋</div>
+        <strong>Drop CSV / TSV file here</strong>
+        <p>or click to browse</p>
+        <input type="file" id="file-input" accept=".csv,.tsv,.txt" style="display:none" onchange="handleFile(this.files[0])">
+      </div>
+      <div id="col-map-wrap" style="display:none;">
+        <div class="section-label" style="margin-bottom:6px;">Map your columns</div>
+        <div class="col-map-grid" id="col-map-grid"></div>
+      </div>
+      <div id="upload-status" style="font-size:12px;color:var(--ink-soft);"></div>
+    </div>
+  </div>
+
+  <!-- TEMPLATE MANAGER -->
+  <div class="setup-section setup-full">
+    <div class="section-label">Email templates</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+
+      <div class="notice">
+        Use these variables anywhere in your template — they auto-fill per contact:<br>
+        <div class="var-chips" style="margin-top:6px;">
+          <span class="var-chip">{{first_name}}</span>
+          <span class="var-chip">{{last_name}}</span>
+          <span class="var-chip">{{company}}</span>
+          <span class="var-chip">{{city}}</span>
+          <span class="var-chip">{{state}}</span>
+          <span class="var-chip">{{years}}</span>
+          <span class="var-chip">{{founded}}</span>
+          <span class="var-chip">{{title}}</span>
+          <span class="var-chip">{{employees}}</span>
+          <span class="var-chip">{{revenue}}</span>
+          <span class="var-chip">{{sender_name}}</span>
+          <span class="var-chip">{{sender_firm}}</span>
+        </div>
+      </div>
+
+      <div class="template-list" id="template-list"></div>
+
+      <div style="display:flex;gap:7px;flex-wrap:wrap;">
+        <button class="btn" onclick="newTemplate()">+ New template</button>
+        <button class="btn" onclick="document.getElementById('tmpl-file-input').click()">↑ Import from file</button>
+        <input type="file" id="tmpl-file-input" accept=".txt,.json" style="display:none" onchange="importTemplateFile(this)">
+      </div>
+
+      <div class="template-editor-wrap" id="template-editor-wrap">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+          <input type="text" id="tmpl-name-input" placeholder="Template name (e.g. Technician shortage angle)" style="flex:1;" />
+          <button class="btn btn-danger btn-sm" onclick="deleteTemplate()">Delete</button>
+          <button class="btn btn-accent" onclick="saveTemplate()">Save</button>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;">Subject line</label>
+          <input type="text" id="tmpl-subject-input" placeholder="e.g. Your Fire & Life Safety Business in {{city}}" />
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px;">Body — click a variable below to insert at cursor</label>
+          <textarea id="tmpl-body-input" rows="9" placeholder="Hi {{first_name}},&#10;&#10;Saw you've been doing fire suppression in {{city}} for {{years}}+ years..."></textarea>
+          <div class="var-chips" style="margin-top:5px;">
+            <span class="var-chip" onclick="insertVar('{{first_name}}')">{{first_name}}</span>
+            <span class="var-chip" onclick="insertVar('{{last_name}}')">{{last_name}}</span>
+            <span class="var-chip" onclick="insertVar('{{company}}')">{{company}}</span>
+            <span class="var-chip" onclick="insertVar('{{city}}')">{{city}}</span>
+            <span class="var-chip" onclick="insertVar('{{state}}')">{{state}}</span>
+            <span class="var-chip" onclick="insertVar('{{years}}')">{{years}}</span>
+            <span class="var-chip" onclick="insertVar('{{founded}}')">{{founded}}</span>
+            <span class="var-chip" onclick="insertVar('{{title}}')">{{title}}</span>
+            <span class="var-chip" onclick="insertVar('{{employees}}')">{{employees}}</span>
+            <span class="var-chip" onclick="insertVar('{{revenue}}')">{{revenue}}</span>
+            <span class="var-chip" onclick="insertVar('{{sender_name}}')">{{sender_name}}</span>
+            <span class="var-chip" onclick="insertVar('{{sender_firm}}')">{{sender_firm}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-actions">
+    <div id="setup-warn" style="font-size:12px;color:var(--danger);display:none;">Please add at least one template and upload contacts before continuing.</div>
+    <button class="btn btn-lg btn-accent" onclick="goToOutreach()">Go to Outreach →</button>
+  </div>
+
+</div>
+</div>
+
+<!-- ════════════════ VIEW: OUTREACH ════════════════ -->
+<div class="view" id="view-outreach">
+  <aside>
+    <div class="sidebar-top">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="search" placeholder="Search name or company…" oninput="filterContacts()">
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <select id="filter-template" onchange="filterContacts()" style="font-size:11px;padding:5px 8px;flex:1;">
+          <option value="">All templates</option>
+        </select>
+        <button class="btn" style="font-size:11px;padding:5px 10px;" onclick="resetSent()">Reset</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><span class="stat-n" id="stat-total">0</span><span class="stat-l">total</span></div>
+      <div class="stat"><span class="stat-n" id="stat-sent">0</span><span class="stat-l">sent</span></div>
+      <div class="stat"><span class="stat-n" id="stat-left">0</span><span class="stat-l">left</span></div>
+    </div>
+    <div class="contact-list" id="contact-list"></div>
+  </aside>
+
+  <main id="main">
+    <div class="empty-state" id="empty-state">
+      <h2>Select a contact</h2>
+      <p>Pick someone from the list to compose their personalized email.</p>
+    </div>
+    <div id="editor-shell" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="main-hdr">
+        <div class="mh-left">
+          <div class="mh-name" id="hdr-name"></div>
+          <div class="mh-meta" id="hdr-meta"></div>
+        </div>
+        <div class="nav-btns">
+          <button class="btn" onclick="prevContact()">← Prev</button>
+          <button class="btn" onclick="nextContact()">Next →</button>
+        </div>
+      </div>
+
+      <div class="email-editor">
+        <div class="how-to">
+          <div class="how-to-title">Sending via Outlook Web</div>
+          <ol>
+            <li>Click <strong>↗ Open in Outlook</strong> — pre-fills To, Subject & Body automatically</li>
+            <li>Review, then hit Send from your email account</li>
+            <li>Or click <strong>⎘ Copy body</strong> → paste into any compose window</li>
+          </ol>
+        </div>
+
+        <div class="tmpl-strip" id="tmpl-strip">
+          <span class="tmpl-strip-label">Template</span>
+        </div>
+
+        <div class="field-row">
+          <div class="field-label">From</div>
+          <div class="field-value" id="field-from"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">To</div>
+          <div class="field-value" id="field-to"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Subject</div>
+          <div class="field-value"><input type="text" id="field-subject" /></div>
+        </div>
+
+        <div class="body-wrap">
+          <div class="body-toolbar">
+            <span class="toolbar-label">Body</span>
+          </div>
+          <textarea id="email-body"></textarea>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <div class="action-hint">Edit freely — then open in Outlook or copy to clipboard.</div>
+        <div class="action-btns">
+          <button class="btn" onclick="copyBody()">⎘ Copy body</button>
+          <button class="btn" onclick="openOutlook()">↗ Open in Outlook</button>
+          <button class="btn btn-accent" onclick="markDone()">✓ Mark sent & next</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+const CURRENT_YEAR = 2026;
+const STORAGE_KEYS = { contacts:'op_contacts', colmap:'op_colmap', templates:'op_templates', sender:'op_sender', sent:'op_sent' };
+
+let contacts = [];
+let templates = [];
+let sentSet = new Set();
+let colMap = {};
+let sender = { name:'', email:'', firm:'' };
+let activeIdx = null;
+let activeTemplateId = null;
+let filtered = [];
+let editingTemplateId = null;
+let rawHeaders = [];
+
+// ─── PERSIST ─────────────────────────────────────────────
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+function load(key){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):null; }catch(e){ return null; } }
+
+function saveAll(){
+  save(STORAGE_KEYS.contacts, contacts);
+  save(STORAGE_KEYS.templates, templates);
+  save(STORAGE_KEYS.sent, [...sentSet]);
+  save(STORAGE_KEYS.sender, sender);
+  save(STORAGE_KEYS.colmap, colMap);
+}
+
+function loadAll(){
+  contacts = load(STORAGE_KEYS.contacts) || DEFAULT_CONTACTS;
+  templates = load(STORAGE_KEYS.templates) || DEFAULT_TEMPLATES;
+  sentSet = new Set(load(STORAGE_KEYS.sent) || []);
+  sender = load(STORAGE_KEYS.sender) || { name:'Ned Moreland', email:'emorelan@chicagobooth.edu', firm:'Associate, NextGen Fire & Safety' };
+  colMap = load(STORAGE_KEYS.colmap) || {};
+}
+
+// ─── DEFAULTS ────────────────────────────────────────────
+const DEFAULT_TEMPLATES = [
+  {
+    id: 'tmpl_1',
+    name: 'Technician shortage angle',
+    subject: 'Your Fire & Life Safety Business in {{city}}',
+    body: `Hi {{first_name}},
+
+Saw you've been doing fire suppression and sprinkler service in {{city}} for {{years}}+ years. And it looks like you're doing inspections and ongoing service contracts, not just install work.
+
+Quick question. Is the technician shortage hitting you as hard as it is hitting most operators your size? That was a constant headache when Rishi ran his family's service business. He built and sold a family service business and talks to fire & life safety owners going through that same shift.
+
+He eventually figured it out, scaled to Inc. 5000, and sold it. Now he talks to fire & life safety owners about what is next for them.
+
+Any interest in a quick call with him? If not, no worries.
+
+{{sender_name}}
+{{sender_firm}}`
+  }
+];
+
+const DEFAULT_CONTACTS = [
+  {first:"Sarah",last:"Bomkamp",title:"Account Manager",email:"sarahb@1915farm.com",company:"Nextgen Fire Protection",city:"Las Vegas",state:"NV",website:"https://nextgenprotection.com",employees:"51-200",revenue:"$8,996,104",founded:1998},
+  {first:"Philippe",last:"Lambert",title:"Managing Director",email:"philippe.lambert@polyrix.com",company:"Fire Protection",city:"Mantua",state:"OH",website:"https://fireprotection-inc.com",employees:"11-50",revenue:"$7,149,352",founded:1989},
+  {first:"Jennifer",last:"Houston",title:"Board Member",email:"jhouston@wentzvillefire.org",company:"WFPD",city:"Wentzville",state:"MO",website:"https://www.wentzvillefire.org",employees:"51-200",revenue:"$6,841,871",founded:1971},
+  {first:"Ed Kay",last:"",title:"President",email:"e.kay@kefire.com",company:"K&E Fire Protection",city:"Manalapan",state:"NJ",website:"https://www.kefire.com",employees:"11-50",revenue:"$6,168,172",founded:1972},
+  {first:"Douglas",last:"Odette",title:"Manager",email:"d.odette@nationalfirecontrol.com",company:"National Fire Control",city:"Mesa",state:"AZ",website:"http://nationalfirecontrol.com",employees:"11-50",revenue:"$5,993,885",founded:1982},
+  {first:"Rich",last:"Kendle",title:"General Manager",email:"rkendle@hillintltrucks.com",company:"County Fire Protection",city:"Kent",state:"OH",website:"https://county-fire.com",employees:"11-50",revenue:"$5,905,173",founded:1999},
+  {first:"Mark",last:"Hedrick",title:"Manager",email:"mhedrick@fpswichita.com",company:"FPS",city:"Wichita",state:"KS",website:"https://fpswichita.com",employees:"11-50",revenue:"$5,845,766",founded:1988},
+  {first:"Joe",last:"Petersen",title:"Director",email:"joepetersen@goldridgefire.org",company:"Gold Ridge Fire Protection",city:"Sebastopol",state:"CA",website:"https://www.goldridgefire.org",employees:"11-50",revenue:"$5,719,865",founded:1993},
+  {first:"Clint",last:"Reed",title:"Director of Service",email:"clint@rentfirepumps.com",company:"RentFirePumps.com",city:"Davie",state:"FL",website:"https://rentfirepumps.com",employees:"51-200",revenue:"$5,655,147",founded:1990},
+  {first:"Charles",last:"Rieve",title:"President",email:"charlie@rievefire.com",company:"Rieve Fire Protection",city:"Bethel",state:"CT",website:"https://rievefire.com",employees:"11-50",revenue:"$4,902,281",founded:1980},
+  {first:"Dan",last:"Cutler",title:"Founder",email:"dan@cutlerfire.com",company:"Cutler Fire Protection",city:"Tucson",state:"AZ",website:"http://www.cutlerfire.com",employees:"11-50",revenue:"$4,851,381",founded:1992},
+  {first:"Brian",last:"Walder",title:"President",email:"brian@sprinxfire.com",company:"Sprinx Fire Protection",city:"Gig Harbor",state:"WA",website:"https://sprinxfire.com",employees:"11-50",revenue:"$4,755,854",founded:1999},
+  {first:"Mirza",last:"Agha",title:"President",email:"mirza@westernfireandsafety.com",company:"Western Fire & Safety",city:"Seattle",state:"WA",website:"https://westernfireandsafety.com",employees:"11-50",revenue:"$4,754,182",founded:1987},
+  {first:"Vaheh",last:"Ginosian",title:"Owner",email:"vginosian@cvfireprotection.com",company:"CV Fire Protection",city:"La Crescenta",state:"CA",website:"https://www.cvfireprotection.com",employees:"11-50",revenue:"$4,715,127",founded:1998},
+  {first:"Blake",last:"Chapman",title:"CEO",email:"bchapman@worldfireprotection.com",company:"WFP",city:"Palm Desert",state:"CA",website:"https://www.worldfireprotection.com",employees:"11-50",revenue:"$4,632,518",founded:1989},
+  {first:"Doug",last:"Dickerson",title:"President",email:"doug@dickersonfire.com",company:"Dickerson Automatic Fire Protection",city:"Hewitt",state:"TX",website:"https://dickersonfire.com",employees:"11-50",revenue:"$4,599,391",founded:1980},
+  {first:"Gary",last:"Wunderlich",title:"Owner",email:"garyw@wonderfirepro.com",company:"Wonder Fire Protection",city:"Bogota",state:"NJ",website:"https://www.wonderfirepro.com",employees:"11-50",revenue:"$4,378,538",founded:1988},
+  {first:"Jonathan",last:"Flamm",title:"Chief Executive Officer",email:"jflamm@sevoifp.com",company:"IFP",city:"Lenexa",state:"KS",website:"https://www.sevoifp.com",employees:"1-10",revenue:"$6,053,483",founded:2003},
+  {first:"Jose",last:"Hernandez",title:"Owner",email:"jose@titanfirepro.com",company:"Titan Fire Protection",city:"Weatherford",state:"TX",website:"https://titanfirepro.com",employees:"1-10",revenue:"$5,944,992",founded:2020},
+  {first:"Heather",last:"Towsley",title:"President",email:"heather@fireguardia.com",company:"FireGuardia",city:"San Diego",state:"CA",website:"https://www.fireguardia.com",employees:"1-10",revenue:"$5,750,770",founded:2002},
+  {first:"Gary",last:"LeBlanc",title:"Owner",email:"gleblanc@gandgfireprotection.com",company:"G and G Fire Protection",city:"Attleboro",state:"MA",website:"http://gandgfireprotection.com",employees:"1-10",revenue:"$5,499,629",founded:2002},
+  {first:"Ronald",last:"Roysum",title:"Owner",email:"ron@rescuesolutions.net",company:"Rescue Solutions",city:"Old Hopland",state:"CA",website:"https://rescuesolutions.net",employees:"1-10",revenue:"$5,480,866",founded:2013},
+  {first:"Tony",last:"Cox",title:"Co-Owner",email:"tcox@loufiresafety.com",company:"Louisville Fire & Safety",city:"Louisville",state:"KY",website:"https://www.loufiresafety.com/",employees:"1-10",revenue:"$5,433,166",founded:2002},
+  {first:"Richard",last:"Quiles Jr.",title:"Owner",email:"rq@royalfireprotectionllc.com",company:"Royal Fire Protection",city:"Prospect",state:"CT",website:"https://royalfireprotectionllc.com",employees:"1-10",revenue:"$5,350,302",founded:2023},
+  {first:"Sergio",last:"Galindo",title:"Founder",email:"sergio@rockfiresystems.com",company:"Rock Fire Systems",city:"Yuma",state:"AZ",website:"https://www.rockfiresystems.com",employees:"1-10",revenue:"$5,255,281",founded:2018},
+  {first:"Troy",last:"Murrell",title:"Principal",email:"troy@skylarkfire.com",company:"Skylark Fire Protection",city:"Surprise",state:"AZ",website:"https://skylarkfire.com",employees:"1-10",revenue:"$5,223,810",founded:2020},
+  {first:"Michael",last:"Felle",title:"President",email:"mike@h2ofireprotection.net",company:"H2O Fire Protection",city:"Feasterville Trevose",state:"PA",website:"https://h2ofireprotection.net",employees:"1-10",revenue:"$5,215,202",founded:2004},
+  {first:"Dan",last:"Fraker",title:"President",email:"dfraker@frakerfire.com",company:"Fraker Fire Protection",city:"Los Angeles",state:"CA",website:"https://frakerfire.com",employees:"1-10",revenue:"$5,182,020",founded:2003},
+  {first:"Michael",last:"LaRosa",title:"Owner",email:"mike@mountainfireprotection.com",company:"Mountain Fire Protection",city:"Victor",state:"ID",website:"https://www.mountainfireprotection.com",employees:"1-10",revenue:"$5,155,831",founded:2015},
+  {first:"Clark",last:"Moranz",title:"Owner",email:"clark@crimsonfireprotection.com",company:"Crimson Fire Protection",city:"Evansville",state:"IN",website:"http://www.crimsonfireprotection.com",employees:"1-10",revenue:"$5,138,110",founded:2021},
+  {first:"Dennis",last:"Cobon",title:"President",email:"dennis@northernnevadafire.com",company:"Southern Nevada Fire Protection",city:"Las Vegas",state:"NV",website:"http://www.southernnevadafireprotection.com",employees:"1-10",revenue:"$5,126,380",founded:2010},
+  {first:"Don",last:"Faux",title:"Owner",email:"donf@fireprotectionprofessionals.com",company:"FIRE PROTECTION PROFESSIONALS",city:"Indianola",state:"IA",website:"https://fireprotectionprofessionals.com",employees:"1-10",revenue:"$5,063,959",founded:2017},
+  {first:"Chris",last:"Duehning",title:"Owner",email:"chris@bluefireservice.com",company:"Blue Fire Service",city:"Fort Worth",state:"TX",website:"https://bluefireservice.com",employees:"1-10",revenue:"$5,056,634",founded:2002},
+  {first:"Kevin",last:"Opos",title:"President",email:"info@kofireinc.com",company:"KO Fire Protection",city:"Los Angeles",state:"CA",website:"https://kofireinc.com",employees:"1-10",revenue:"$5,055,548",founded:2014},
+  {first:"Alan",last:"Carlisle",title:"Chairman",email:"alan@firesystemstech.com",company:"Fire Systems Technology",city:"Fort Smith",state:"AR",website:"https://www.firesprinklersystems.us",employees:"1-10",revenue:"$5,050,407",founded:2003},
+  {first:"Ryan",last:"Mooney",title:"Owner",email:"rmooney@blackwaterfirellc.com",company:"Blackwater Fire Protection",city:"Goddard",state:"KS",website:"https://www.blackwaterfirellc.com",employees:"1-10",revenue:"$5,041,056",founded:2016},
+  {first:"Tim",last:"Krulan",title:"President",email:"tim@njfireequip.com",company:"New Jersey Fire Equipment",city:"Rockaway",state:"NJ",website:"https://njfireequip.com",employees:"1-10",revenue:"$5,039,975",founded:2012},
+  {first:"Richard",last:"Horn",title:"Owner",email:"rich@firstsecurityfire.com",company:"First Security Fire Protection",city:"Sylmar",state:"MD",website:"https://www.firstsecurityfireprotection.com",employees:"1-10",revenue:"$5,035,175",founded:2015},
+  {first:"Jonathan",last:"Wilson",title:"Owner",email:"jwilson@capacityfire.com",company:"Capacity Fire Protection",city:"Lapeer",state:"MI",website:"https://capacityfire.com",employees:"1-10",revenue:"$5,012,029",founded:2020}
+];
+
+// ─── HELPERS ─────────────────────────────────────────────
+function firstName(c){ const f=(c.first||'').trim(); return f.includes(' ')?f.split(' ')[0]:f; }
+function displayName(c){ return firstName(c)+(c.last&&c.last!=='.'?' '+c.last:''); }
+function initials(c){ return (firstName(c)[0]||'').toUpperCase()+((c.last&&c.last!=='.')?c.last[0].toUpperCase():''); }
+function yrs(c){ return CURRENT_YEAR-(parseInt(c.founded)||CURRENT_YEAR); }
+function uid(){ return 'tmpl_'+Math.random().toString(36).slice(2,9); }
+
+function fillTemplate(tmpl, c){
+  const s = sender;
+  return tmpl
+    .replace(/\{\{first_name\}\}/g, firstName(c))
+    .replace(/\{\{last_name\}\}/g, c.last||'')
+    .replace(/\{\{company\}\}/g, c.company||'')
+    .replace(/\{\{city\}\}/g, c.city||'')
+    .replace(/\{\{state\}\}/g, c.state||'')
+    .replace(/\{\{years\}\}/g, yrs(c))
+    .replace(/\{\{founded\}\}/g, c.founded||'')
+    .replace(/\{\{title\}\}/g, c.title||'')
+    .replace(/\{\{employees\}\}/g, c.employees||'')
+    .replace(/\{\{revenue\}\}/g, c.revenue||'')
+    .replace(/\{\{sender_name\}\}/g, s.name||'')
+    .replace(/\{\{sender_firm\}\}/g, s.firm||'');
+}
+
+// ─── VIEWS ───────────────────────────────────────────────
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.htab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('tab-'+v).classList.add('active');
+  if(v==='outreach') renderOutreach();
+}
+
+function goToOutreach(){
+  if(!templates.length || !contacts.length){
+    document.getElementById('setup-warn').style.display='block';
+    return;
+  }
+  document.getElementById('setup-warn').style.display='none';
+  showView('outreach');
+}
+
+// ─── SETUP: SENDER ───────────────────────────────────────
+function syncSender(){
+  sender.name = document.getElementById('sender-name').value;
+  sender.email = document.getElementById('sender-email').value;
+  sender.firm = document.getElementById('sender-firm').value;
+  save(STORAGE_KEYS.sender, sender);
+}
+['sender-name','sender-email','sender-firm'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', syncSender);
+});
+
+// ─── SETUP: FILE UPLOAD ──────────────────────────────────
+function onDragOver(e){ e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function onDragLeave(e){ document.getElementById('drop-zone').classList.remove('drag-over'); }
+function onDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if(f) handleFile(f);
+}
+
+function handleFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => parseCSV(e.target.result, file.name);
+  reader.readAsText(file);
+}
+
+function parseCSV(text, filename){
+  const lines = text.trim().split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length < 2){ showToast('File too short — need a header row and data'); return; }
+
+  // detect delimiter
+  const delim = lines[0].includes('\t') ? '\t' : ',';
+  const parseLine = l => {
+    if(delim==='\t') return l.split('\t').map(s=>s.trim());
+    // simple CSV: handle quoted fields
+    const out=[]; let cur='', inQ=false;
+    for(let i=0;i<l.length;i++){
+      if(l[i]==='"'){ inQ=!inQ; }
+      else if(l[i]===','&&!inQ){ out.push(cur.trim()); cur=''; }
+      else { cur+=l[i]; }
+    }
+    out.push(cur.trim());
+    return out;
+  };
+
+  rawHeaders = parseLine(lines[0]);
+  const rows = lines.slice(1).map(parseLine);
+
+  // show column mapper
+  showColMapper(rawHeaders, rows);
+  document.getElementById('upload-status').textContent = `Loaded ${rows.length} rows from "${filename}"`;
+}
+
+const FIELD_TARGETS = [
+  {key:'first', label:'First name'},
+  {key:'last', label:'Last name'},
+  {key:'company', label:'Company'},
+  {key:'email', label:'Email'},
+  {key:'title', label:'Title'},
+  {key:'city', label:'City'},
+  {key:'state', label:'State'},
+  {key:'founded', label:'Year Founded'},
+  {key:'employees', label:'Employees'},
+  {key:'revenue', label:'Revenue'},
+  {key:'website', label:'Website'},
+];
+
+function guessCol(headers, hints){
+  const h = headers.map(x=>x.toLowerCase());
+  for(const hint of hints){
+    const idx = h.findIndex(x=>x.includes(hint));
+    if(idx>=0) return headers[idx];
+  }
+  return '';
+}
+
+function showColMapper(headers, rows){
+  const wrap = document.getElementById('col-map-wrap');
+  const grid = document.getElementById('col-map-grid');
+  wrap.style.display='block';
+  grid.innerHTML='';
+
+  const guesses = {
+    first: guessCol(headers,['first','fname','given']),
+    last: guessCol(headers,['last','lname','surname']),
+    company: guessCol(headers,['company','org','business','firm']),
+    email: guessCol(headers,['email','e-mail','mail']),
+    title: guessCol(headers,['title','role','position']),
+    city: guessCol(headers,['city','location','town']),
+    state: guessCol(headers,['state','province','region']),
+    founded: guessCol(headers,['founded','year','established','est']),
+    employees: guessCol(headers,['employee','staff','size','headcount']),
+    revenue: guessCol(headers,['revenue','rev','sales','income','est. rev']),
+    website: guessCol(headers,['website','web','url','site','domain']),
+  };
+
+  FIELD_TARGETS.forEach(({key,label})=>{
+    const div = document.createElement('div');
+    div.className='col-map-item';
+    div.innerHTML=`<label>${label}</label>
+      <select id="map-${key}">
+        <option value="">— skip —</option>
+        ${headers.map(h=>`<option value="${h}" ${h===guesses[key]?'selected':''}>${h}</option>`).join('')}
+      </select>`;
+    grid.appendChild(div);
+  });
+
+  // wire up Apply button
+  let applyBtn = document.getElementById('apply-map-btn');
+  if(!applyBtn){
+    applyBtn = document.createElement('button');
+    applyBtn.id='apply-map-btn';
+    applyBtn.className='btn btn-accent';
+    applyBtn.textContent='Apply mapping';
+    applyBtn.style.marginTop='8px';
+    wrap.appendChild(applyBtn);
+  }
+  applyBtn.onclick = () => applyMapping(headers, rows);
+}
+
+function applyMapping(headers, rows){
+  const map = {};
+  FIELD_TARGETS.forEach(({key})=>{
+    const sel = document.getElementById('map-'+key);
+    if(sel) map[key] = sel.value;
+  });
+  colMap = map;
+
+  const hIdx = {};
+  headers.forEach((h,i)=>hIdx[h]=i);
+
+  contacts = rows.map(row=>{
+    const c = {};
+    FIELD_TARGETS.forEach(({key})=>{
+      const col = map[key];
+      c[key] = col && hIdx[col]!==undefined ? (row[hIdx[col]]||'') : '';
+    });
+    if(c.founded) c.founded = parseInt(c.founded)||0;
+    return c;
+  }).filter(c=>c.email||c.first||c.company);
+
+  sentSet = new Set();
+  saveAll();
+  document.getElementById('upload-status').textContent = `✓ ${contacts.length} contacts imported and saved`;
+  document.getElementById('hdr-count').textContent = contacts.length+' contacts';
+  showToast(contacts.length+' contacts imported!');
+}
+
+// ─── SETUP: TEMPLATES ────────────────────────────────────
+function renderTemplateList(){
+  const list = document.getElementById('template-list');
+  list.innerHTML='';
+  if(!templates.length){
+    list.innerHTML='<div style="font-size:12px;color:var(--ink-soft);padding:4px 0;">No templates yet — click "New template" to add one.</div>';
+    return;
+  }
+  templates.forEach(t=>{
+    const div = document.createElement('div');
+    div.className='template-row'+(editingTemplateId===t.id?' selected':'');
+    div.onclick=()=>editTemplate(t.id);
+    div.innerHTML=`<div class="tmpl-name">${t.name}</div>
+      <div class="tmpl-preview">${t.body.slice(0,60).replace(/\n/g,' ')}…</div>
+      <span class="tag tag-blue">Edit</span>`;
+    list.appendChild(div);
+  });
+}
+
+function newTemplate(){
+  const t = { id:uid(), name:'New template', subject:'Your Fire & Life Safety Business in {{city}}', body:'' };
+  templates.push(t);
+  save(STORAGE_KEYS.templates, templates);
+  editTemplate(t.id);
+}
+
+function editTemplate(id){
+  editingTemplateId=id;
+  const t=templates.find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('tmpl-name-input').value=t.name;
+  document.getElementById('tmpl-subject-input').value=t.subject||'';
+  document.getElementById('tmpl-body-input').value=t.body;
+  document.getElementById('template-editor-wrap').classList.add('open');
+  renderTemplateList();
+}
+
+function saveTemplate(){
+  if(!editingTemplateId) return;
+  const t=templates.find(x=>x.id===editingTemplateId);
+  if(!t) return;
+  t.name=document.getElementById('tmpl-name-input').value||'Untitled';
+  t.subject=document.getElementById('tmpl-subject-input').value;
+  t.body=document.getElementById('tmpl-body-input').value;
+  save(STORAGE_KEYS.templates, templates);
+  renderTemplateList();
+  showToast('Template saved ✓');
+}
+
+function deleteTemplate(){
+  if(!editingTemplateId) return;
+  templates=templates.filter(x=>x.id!==editingTemplateId);
+  editingTemplateId=null;
+  document.getElementById('template-editor-wrap').classList.remove('open');
+  save(STORAGE_KEYS.templates, templates);
+  renderTemplateList();
+  showToast('Template deleted');
+}
+
+function insertVar(v){
+  const ta=document.getElementById('tmpl-body-input');
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  ta.value=ta.value.slice(0,start)+v+ta.value.slice(end);
+  ta.selectionStart=ta.selectionEnd=start+v.length;
+  ta.focus();
+}
+
+function importTemplateFile(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const text=e.target.result.trim();
+    try{
+      const parsed=JSON.parse(text);
+      const arr=Array.isArray(parsed)?parsed:[parsed];
+      arr.forEach(t=>{
+        templates.push({id:uid(), name:t.name||'Imported template', subject:t.subject||'', body:t.body||t.template||''});
+      });
+    }catch(_){
+      // treat as plain text template
+      templates.push({id:uid(), name:file.name.replace(/\.[^.]+$/,''), subject:'Your Fire & Life Safety Business in {{city}}', body:text});
+    }
+    save(STORAGE_KEYS.templates, templates);
+    renderTemplateList();
+    showToast('Template(s) imported ✓');
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+// ─── OUTREACH ────────────────────────────────────────────
+function renderOutreach(){
+  // populate template filter
+  const sel=document.getElementById('filter-template');
+  sel.innerHTML='<option value="">All templates</option>'+templates.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  filterContacts();
+  updateStats();
+  document.getElementById('hdr-count').textContent=contacts.length+' contacts';
+}
+
+function filterContacts(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  filtered=contacts.map((_,i)=>i).filter(i=>{
+    const c=contacts[i];
+    return !q||(displayName(c)+' '+(c.company||'')).toLowerCase().includes(q);
+  });
+  renderList();
+}
+
+function renderList(){
+  const list=document.getElementById('contact-list');
+  list.innerHTML='';
+  filtered.forEach(i=>{
+    const c=contacts[i];
+    const done=sentSet.has(i);
+    const d=document.createElement('div');
+    d.className='contact-item'+(i===activeIdx?' active':'')+(done?' done':'');
+    d.onclick=()=>selectContact(i);
+    d.innerHTML=`<div class="avatar">${initials(c)}</div>
+      <div class="ci-info">
+        <div class="ci-name">${displayName(c)}</div>
+        <div class="ci-co">${c.company||''} · ${c.city||''}, ${c.state||''}</div>
+      </div>
+      <span class="cbadge ${done?'done':'ready'}">${done?'sent':'ready'}</span>`;
+    list.appendChild(d);
+  });
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById('stat-total').textContent=contacts.length;
+  document.getElementById('stat-sent').textContent=sentSet.size;
+  document.getElementById('stat-left').textContent=contacts.length-sentSet.size;
+}
+
+function selectContact(i){
+  activeIdx=i;
+  const c=contacts[i];
+
+  document.getElementById('empty-state').style.display='none';
+  const shell=document.getElementById('editor-shell');
+  shell.style.display='flex';
+
+  document.getElementById('hdr-name').textContent=`${displayName(c)} — ${c.company||''}`;
+  document.getElementById('hdr-meta').innerHTML=
+    `<span>${c.title||''}</span>`+
+    (c.city?`<span>${c.city}, ${c.state||''}</span>`:'')  +
+    (c.founded?`<span>Est. ${c.founded} · ${yrs(c)} yrs</span>`:'') +
+    (c.employees?`<span>${c.employees} employees</span>`:'') +
+    (c.website?`<a href="${c.website}" target="_blank">${c.website.replace(/https?:\/\//,'')}</a>`:'');
+
+  document.getElementById('field-from').textContent=`${sender.name} <${sender.email}>`;
+  document.getElementById('field-to').textContent=`${displayName(c)} <${c.email}>`;
+
+  // build template strip
+  const strip=document.getElementById('tmpl-strip');
+  // remove old buttons except label
+  strip.querySelectorAll('.tmpl-btn').forEach(b=>b.remove());
+
+  if(!templates.length){
+    const span=document.createElement('span');
+    span.style.cssText='font-size:11px;color:var(--ink-soft);';
+    span.textContent='No templates — go to Setup to add one';
+    strip.appendChild(span);
+  } else {
+    // default to first template if none active or invalid
+    if(!activeTemplateId || !templates.find(t=>t.id===activeTemplateId)){
+      activeTemplateId=templates[0].id;
+    }
+    templates.forEach(t=>{
+      const btn=document.createElement('button');
+      btn.className='tmpl-btn'+(t.id===activeTemplateId?' active':'');
+      btn.textContent=t.name;
+      btn.onclick=()=>{
+        activeTemplateId=t.id;
+        applyTemplate(c);
+        strip.querySelectorAll('.tmpl-btn').forEach(b=>b.classList.toggle('active',b===btn));
+      };
+      strip.appendChild(btn);
+    });
+  }
+
+  applyTemplate(c);
+  renderList();
+}
+
+function applyTemplate(c){
+  const tmpl=templates.find(t=>t.id===activeTemplateId);
+  if(!tmpl) return;
+  document.getElementById('field-subject').value=fillTemplate(tmpl.subject||'',c);
+  document.getElementById('email-body').value=fillTemplate(tmpl.body,c);
+}
+
+function prevContact(){
+  if(activeIdx===null) return;
+  const pos=filtered.indexOf(activeIdx);
+  if(pos>0) selectContact(filtered[pos-1]);
+}
+function nextContact(){
+  if(activeIdx===null){ if(filtered.length) selectContact(filtered[0]); return; }
+  const pos=filtered.indexOf(activeIdx);
+  if(pos<filtered.length-1) selectContact(filtered[pos+1]);
+}
+
+function copyBody(){
+  const body=document.getElementById('email-body').value;
+  navigator.clipboard.writeText(body)
+    .then(()=>showToast('Body copied — paste into Outlook compose window'))
+    .catch(()=>{ document.getElementById('email-body').select(); document.execCommand('copy'); showToast('Body copied'); });
+}
+
+function openOutlook(){
+  if(activeIdx===null) return;
+  const c=contacts[activeIdx];
+  const subject=encodeURIComponent(document.getElementById('field-subject').value);
+  const body=encodeURIComponent(document.getElementById('email-body').value);
+  window.open(`https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(c.email)}&subject=${subject}&body=${body}`,'_blank');
+}
+
+function markDone(){
+  if(activeIdx===null) return;
+  sentSet.add(activeIdx);
+  save(STORAGE_KEYS.sent,[...sentSet]);
+  const next=filtered.find(i=>i!==activeIdx&&!sentSet.has(i));
+  renderList();
+  if(next!==undefined) selectContact(next);
+  else showToast('All contacts in this view are marked sent!');
+}
+
+function resetSent(){
+  if(!confirm('Reset all "sent" markers?')) return;
+  sentSet=new Set();
+  save(STORAGE_KEYS.sent,[]);
+  renderList();
+  showToast('Progress reset');
+}
+
+// ─── TOAST ───────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ─── INIT ────────────────────────────────────────────────
+loadAll();
+// populate sender fields
+document.getElementById('sender-name').value=sender.name||'';
+document.getElementById('sender-email').value=sender.email||'';
+document.getElementById('sender-firm').value=sender.firm||'';
+renderTemplateList();
+document.getElementById('hdr-count').textContent=contacts.length+' contacts';
+</script>
+</body>
+</html>
